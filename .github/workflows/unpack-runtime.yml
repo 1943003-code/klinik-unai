@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
+      - '.bundle/**'
       - '.github/workflows/unpack-runtime.yml'
 
 permissions:
@@ -21,17 +22,20 @@ jobs:
           set -euo pipefail
           : > runtime.b64
           for n in 00 01 02 03 04 05 06 07 08; do
-            head -c 18000 ".bundle/rt${n}.b64" >> runtime.b64
+            test "$(wc -c < .bundle/rt${n}.b64)" -eq 18000
+            cat ".bundle/rt${n}.b64" >> runtime.b64
           done
-          head -c 8476 .bundle/rt09.b64 >> runtime.b64
+          test "$(wc -c < .bundle/rt09.b64)" -eq 8476
+          cat .bundle/rt09.b64 >> runtime.b64
           test "$(wc -c < runtime.b64)" -eq 170476
           base64 -d runtime.b64 > runtime.zip
+          echo "0a4f440e6fc4477bf5b2fd656643617bc3bac50c52cba1f91f5840d62febd110  runtime.zip" | sha256sum -c -
           unzip -t runtime.zip
           rm -rf unpacked
           mkdir unpacked
           unzip -q runtime.zip -d unpacked
           rsync -a --delete --exclude '.git' --exclude '.github' --exclude '.bundle' unpacked/ ./
-          rm -rf unpacked runtime.b64 runtime.zip
+          rm -rf unpacked runtime.b64 runtime.zip .bundle
 
       - name: Commit source
         shell: bash
