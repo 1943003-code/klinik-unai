@@ -48,3 +48,5 @@ jobs:
           fi
           git commit -m "Expand Klinik UNAI V5 runtime source"
           git push
+
+# runtime bundle verified and ready
